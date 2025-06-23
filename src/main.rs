@@ -13,13 +13,15 @@ use bevy_egui::{
 };
 
 fn main() {
+    //Creates a new Bevy app and adds defualt plugins and the Egui plugin for GUI
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
-        .add_systems(Startup, setup_scene_system)
-        .add_systems(EguiContextPass, ui_system)
+        .add_systems(Startup, setup_scene_system)//Runs once when the app starts
+        .add_systems(EguiContextPass, ui_system) //Handles GUI rendering
+
         // You can wrap your systems with the `egui_wants_any_pointer_input`, `egui_wants_any_keyboard_input` run conditions if you
         // want to disable them while Egui is using input.
         //
@@ -28,7 +30,7 @@ fn main() {
         .add_systems(
             Update,
             keyboard_input_system.run_if(not(egui_wants_any_keyboard_input)),
-        )
+        )//Runs every frame for input handling
         .add_systems(
             Update,
             pointer_input_system.run_if(not(egui_wants_any_pointer_input)),
@@ -36,12 +38,14 @@ fn main() {
         .run();
 }
 
+//Defines a resource that holds two colors (yellow and purple). Used for changing the color of the rectangle in the scene
 #[derive(Resource, Clone)]
 struct Materials {
     yellow: MeshMaterial2d<ColorMaterial>,
     purple: MeshMaterial2d<ColorMaterial>,
 }
 
+//Initilizes the scene with a 2D camera, a rectangle th at can be moved and colored, and materials for coloring the rectangle
 fn setup_scene_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -69,6 +73,7 @@ impl Default for LoremIpsum {
     }
 }
 
+//Tracks the last input events (keyboard, mouse button, and mouse wheel). Used to display input info in the GUI
 #[derive(Default)]
 struct LastEvents {
     keyboard_input: Option<KeyboardInput>,
@@ -76,6 +81,7 @@ struct LastEvents {
     mouse_wheel: Option<MouseWheel>,
 }
 
+//System that creates the main GUI window using Egui. Shows input event info. Provides a text field for testing keyboard input. Has an option to absorb all input events.
 #[allow(clippy::too_many_arguments)]
 fn ui_system(
     mut contexts: EguiContexts,
@@ -126,7 +132,9 @@ fn ui_system(
             ui.text_edit_multiline(&mut text.0);
         });
 }
+//INPUT SYSTEMS
 
+//Keuboard input system moves rectangle based on wasd keys
 fn keyboard_input_system(
     mesh: Single<&mut Transform, Without<Camera2d>>,
     keyboard_button_input: Res<ButtonInput<KeyCode>>,
@@ -147,6 +155,7 @@ fn keyboard_input_system(
     }
 }
 
+//Pointer input system handles mouse interactions such as LEft click toggles between yellow and purple. Mouse wgheel changes the size of the rectangle
 fn pointer_input_system(
     materials: Res<Materials>,
     mesh: Single<(&mut Transform, &mut MeshMaterial2d<ColorMaterial>), Without<Camera2d>>,
